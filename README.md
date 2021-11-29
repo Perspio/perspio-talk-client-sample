@@ -59,16 +59,16 @@ After successful login the client application will make a call to the Perpsio Us
 The sample application demonstrates loging in to invoke Perpio APIs using Microsoft Authenticaion Library (MSAL). You can find how MSAL help you in developing for other scenarios and in other languages and Frameworks.
 
 ###### Library	Supported platforms and frameworks
-MSAL for Android	Android
-MSAL Angular	Single-page apps with Angular and Angular.js frameworks
-MSAL for iOS and macOS	iOS and macOS
-MSAL Go (Preview)	Windows, macOS, Linux
-MSAL Java	Windows, macOS, Linux
-MSAL.js	JavaScript/TypeScript frameworks such as Vue.js, Ember.js, or Durandal.js
-MSAL.NET	.NET Framework, .NET Core, Xamarin Android, Xamarin iOS, Universal Windows Platform
-MSAL Node	Web apps with Express, desktop apps with Electron, Cross-platform console apps
-MSAL Python	Windows, macOS, Linux
-MSAL React	Single-page apps with React and React-based libraries (Next.js, Gatsby.js)
+- MSAL for Android	Android
+- MSAL Angular	Single-page apps with Angular and Angular.js frameworks
+- MSAL for iOS and macOS	iOS and macOS
+- MSAL Go (Preview)	Windows, macOS, Linux
+- MSAL Java	Windows, macOS, Linux
+- MSAL.js	JavaScript/TypeScript frameworks such as Vue.js, Ember.js, or Durandal.js
+- MSAL.NET	.NET Framework, .NET Core, Xamarin Android, Xamarin iOS, Universal Windows Platform
+- MSAL Node	Web apps with Express, desktop apps with Electron, Cross-platform console apps
+- MSAL Python	Windows, macOS, Linux
+- MSAL React	Single-page apps with React and React-based libraries (Next.js, Gatsby.js)
 
 https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview 
 
