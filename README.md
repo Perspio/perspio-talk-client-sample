@@ -24,14 +24,26 @@ You will also need
 The application when run the very first time will provide you with a device login code that you will need to use on http://microsoft.com/devicelogin
 
 ![alt text](login-prompt.PNG "Login Code")
-![alt text](login-device2.PNG "Login to Microsoft")
+![alt text](login-device2.PNG "Login to Perspio")
 
 You will then be promoted to login using your perspio service account userid and pwd, provided by Inauro
+
+![alt text](login-demo-user.PNG "Enter your credentials")
+
 
 After successful login to Microsoft the sample client application 
 - will cache the acces token to make the Perspio API calls
 - will cache the and refresh token so when access token is expired the sample application will automatically refresh the access token. 
-  Note: Refresh tokens are valid for 90 days and automatically get renewed when a new access token is acquired. Therefore no user interaction is required as far as the client application runs at least once in 90 days. If notthen the refresh token will also expire and will require you to relogin following the device/interactive flow as explained above. 
+ 
+  
+The next time the application is run it will prompt you with the following two options. 
+
+![alt text](login-option-prompt.PNG "Login Code")
+
+You can choose to force re-login or continue with the cached tokens.
+
+- 
+  Note: Refresh tokens are valid for 90 days and automatically get renewed when a new access token is acquired. Therefore no user interaction is required as far as the client application runs at least once in 90 days. If notthen the refresh token will also expire and will require you to relogin following the device/interactive flow as explained above.
   
 #### Step3: Sample Application retrieves your user profile 
 
