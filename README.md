@@ -17,13 +17,25 @@ Update these values in the program.cs file
 
 You will also need 
 - Your userid and password to login in the following step
-- tid: Perspio Tenant Id, a unique id assigned to your Perspio Customer Account
+- subscriptionkey: Perspio Talk API Subscription Key, a unique key assigned to your Perspio Customer Account
   
 #### Step2: Run the console application and login to windows
 
-The application when run the very first time will provide you with a device login code that you will need to use on http://microsoft.com/devicelogin
+In this step the sample application will log you in and cache the access and refresh tokens.
+
+There are two options available (for demo purposes) to choose from. You can login on the same machine using the Interactive Flow option or remotely from another computer using Device Code option.
+
+![alt text](login-flow-option.PNG "Login Code")
+
+
+Option 1: 
+![alt text](login-interactive.PNG "Enter your credentials")
+
+
+Option 2: A device login code that you will need to use on http://microsoft.com/devicelogin
 
 ![alt text](login-prompt.PNG "Login Code")
+
 ![alt text](login-device2.PNG "Login to Perspio")
 
 You will then be promoted to login using your perspio service account userid and pwd, provided by Inauro
@@ -44,7 +56,8 @@ You can choose to force re-login or continue with the cached tokens.
 
 - 
   Note: Refresh tokens are valid for 90 days and automatically get renewed when a new access token is acquired. Therefore no user interaction is required as far as the client application runs at least once in 90 days. If notthen the refresh token will also expire and will require you to relogin following the device/interactive flow as explained above.
-  
+
+
 #### Step3: Sample Application retrieves your user profile 
 
 After successful login the client application will make a call to the Perpsio User APIs and will retrieve your service account user profile and display that. You can invoke anyother api by replacing the path to the endpoint in program.cs
