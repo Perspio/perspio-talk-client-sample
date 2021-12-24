@@ -2,22 +2,42 @@
 
 ###About this sample
 
-This app is a sample app built in .Net and demonstrates a simple use case of retriveing your user profile from Perspio APIs. 
+This app is a sample app built in .Net and demonstrates how you can access Perspio Talk APIs
+- on behalf of a user : suitable for a web client where your users login to
+- using clientId/secret: suitable for daemon agents/background jobs scenario
 
 ### Run the  sample application
 #### Step 1: Obtain client credentials from Inauro
 To test the application you will need the following from Inauro
-- Azure Tenant Id
-- Client id for your Perspio Talk Client Application
+- clientId: The Application Id for your Perspio Talk Client App registration - Provided by Inauro
+- tenant: Azure Tenant hosting the Perspio platform - Provided by Inauro
+- subscriptionKey : A unique kep mapped to your Perspio Tenant
+- clientSecret: Required to test 'As Daemon' agent flow
+- userId/password: Required to test on-behalf-of user flow
+- Perspio Talk API end point: By default 
+- for dev & testing
+  
+
+        private static string _subscriptionKey = "----";
+        private static string _clientId = "---";
+        private static string _clientSecret = "---";
+        private static string _tenant = "----";
+        private static string _instance = "https://login.microsoftonline.com/";
+        private static string _perspioTalkAPIEndpoint = "https://dev-talk.perspio.io";
+
 
 Update these values in the program.cs file
 
-        private static string ClientId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
-        private static string Tenant = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx";
+        private static string _subscriptionKey = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
+        private static string _clientId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
+        private static string _clientSecret = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
+        private static string _tenant = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
+        private static string _instance = "https://login.microsoftonline.com/";
+        private static string _perspioTalkAPIEndpoint = "https://dev-talk.perspio.io";
 
-You will also need 
+You will also need to 
 - Your userid and password to login in the following step
-- subscriptionkey: Perspio Talk API Subscription Key, a unique key assigned to your Perspio Customer Account
+  
   
 #### Step2: Run the console application and login to windows
 

@@ -30,24 +30,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Interop;
 
 namespace Perspio.Talk.Sample.DotNet
 {
     class Program
     {
-        //Set the scope for API call 
-        static string[] _scopes = new string[] { "api://a916b11b-5b63-4a0d-9a7d-d70d20c0b9ac/access_as_user" };
 
         // You have to replace:
-        // - ClientId: The Application Id for your Perspio Talk Client App registration - Provided by Inauro
-        // - TenantId: Azure Tenant hosting the Perspio platform - Provided by Inauro
+        // - clientId: The Application Id for your Perspio Talk Client App registration - Provided by Inauro
+        // - tenant: Azure Tenant hosting the Perspio platform - Provided by Inauro
+        // - subscriptionKey : A unique kep mapped to your Perspio Tenant
+        // - clientSecret: [Optional] If on-behalf-of-user level access is not required then clientId/secret is needed
 
-        private static string ClientId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx";
-        private static string Tenant = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx";
-        private static string Instance = "https://login.microsoftonline.com/";
-        static string perspioTalkAPIEndpoint = "https://dev-talk.perspio.io/aad/v1/currentuser"; // this API will return your brief profile
+        private static string _subscriptionKey = "----";
+        private static string _clientId = "---";
+        private static string _clientSecret = "---";
+        private static string _tenant = "----";
+        private static string _instance = "https://login.microsoftonline.com/";
+        private static string _perspioTalkAPIEndpoint = "https://dev-talk.perspio.io";
+
+
+        private static string _apiToInvoke = "";
+        private static string _apiToInvokeOnUserBehalf = "/aad/v3/currentuser"; // this API will return your brief profile
+        private static string _apiToInvokeAsDaemon = "/locations/v3/labels"; // this API will return your brief profile
+
+        
+        //Set the scope for API call 
+        static string[] _publicAppscopes = new string[] { "api://-----/access_as_user" }; // for clients accessinf data on-behalf-of-a user 
+        static string[] _confidentialAppscopes = new string[] { "api://-----/.default" }; // for clients running as a daemon agent
+
 
         private static IPublicClientApplication _clientApp;
+        private static IConfidentialClientApplication _confClientApp;
 
         static async Task Main()
         {
@@ -56,96 +71,138 @@ namespace Perspio.Talk.Sample.DotNet
             AuthenticationResult authResult = await AuthenticateClient(); // login using Device Flow only once - subsequent run of the program will automatically acquire the token from the cache or refresh it
 
             var response = await InvokeAPI(authResult);
-            Console.WriteLine($"Api Response: {response}");
-            Console.ReadLine();
-            
-            //2nd API call without authenticating using deviceflow  ( reusing the token from the token cache)
-            authResult = await AuthenticateClient();
-            response = await InvokeAPI(authResult);
-            Console.WriteLine($"Api Response: {response}");
+            Console.WriteLine();
+            Console.WriteLine($"Api Response: {Environment.NewLine} {response}");
             Console.ReadLine();
 
         }
 
-    private static void PrepareClient()
-    {
-        _clientApp = PublicClientApplicationBuilder.Create(ClientId)
-                 .WithAuthority($"{Instance}{Tenant}")
-                 .WithDefaultRedirectUri()
-                 .Build();
-        TokenCacheHelper.EnableSerialization(_clientApp.UserTokenCache);
-    }
-
-    private static async Task<AuthenticationResult> AuthenticateClient()
-    {
-        AuthenticationResult authResult = null;
-
-        IEnumerable<IAccount> accounts = await _clientApp.GetAccountsAsync();
-        IAccount firstAccount = accounts.FirstOrDefault();
-
-        try
+        private static void PrepareClient()
         {
-            authResult = await _clientApp.AcquireTokenSilent(_scopes, firstAccount)
-                .ExecuteAsync();
+            _clientApp = PublicClientApplicationBuilder.Create(_clientId)
+                     .WithAuthority($"{_instance}{_tenant}")
+                     .WithDefaultRedirectUri()
+                     .Build();
+            TokenCacheHelper.EnableSerialization(_clientApp.UserTokenCache);
+
+            _confClientApp = ConfidentialClientApplicationBuilder
+                    .Create(_clientId)
+                    .WithTenantId(_tenant)
+                    .WithClientSecret(_clientSecret)
+                    .Build();
+            TokenCacheHelper.EnableSerialization(_confClientApp.UserTokenCache);
+
         }
-        catch (MsalUiRequiredException ex)
+
+        private static async Task<AuthenticationResult> AuthenticateClient()
         {
-            // A MsalUiRequiredException happened on AcquireTokenSilent. 
-            // This indicates you need to call AcquireTokenWithDeviceCode to acquire a token
-            System.Diagnostics.Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+            AuthenticationResult authResult = null;
+
+            IEnumerable<IAccount> accounts = await _clientApp.GetAccountsAsync();
+            IAccount firstAccount = accounts.FirstOrDefault();
 
             try
             {
-                authResult = await _clientApp.AcquireTokenWithDeviceCode(_scopes, deviceCodeResult =>
+                authResult = await _clientApp.AcquireTokenSilent(_publicAppscopes, firstAccount)
+                    .ExecuteAsync();
+                if (authResult != null)
                 {
-                    Console.WriteLine(deviceCodeResult.Message);
-                    return Task.FromResult(0);
-                }).ExecuteAsync();
+                    Console.WriteLine($"Continue using the tokens from the cache?{Environment.NewLine} " +
+                        $"Y: Login silently using the last access/refresh tokens from cache(if not expired) {Environment.NewLine} " +
+                        $"N: Login and acquire new access and refresh tokens");
+                    var response = Console.ReadKey();
+                    if (response.Key.ToString().ToLower() == "n")
+                    {
+                        Console.WriteLine();
+                        throw new MsalUiRequiredException("0", "Force relogin");
+                    }
 
+                }
             }
-            catch (MsalException msalex)
+            catch (MsalUiRequiredException ex)
             {
-                Console.WriteLine($"Error Acquiring Token Silently:{System.Environment.NewLine}{msalex}");
+                // A MsalUiRequiredException happened on AcquireTokenSilent. 
+                // This indicates you need to call AcquireTokenWithDeviceCode to acquire a token
+                System.Diagnostics.Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+
+                try
+                {
+                    Console.WriteLine();
+                    Console.WriteLine($"Choose the token acquisition option{Environment.NewLine} " +
+                        $"1: On-Behalf-Of-User Flow: Web based interactive login {Environment.NewLine} " +
+                        $"2: On-Behalf-Of-User Flow: Device login {Environment.NewLine} " +
+                        $"3: As Daemon Agent Flow: ClientId/ClientSecret login {Environment.NewLine} ");
+                    Console.Write(" ");
+                    var response = Console.ReadKey();
+
+                    if (response.Key.ToString() == "D1")
+                    {
+                        authResult = await _clientApp.AcquireTokenInteractive(_publicAppscopes)
+                          .WithAccount(firstAccount)
+                          .WithPrompt(Prompt.SelectAccount)
+                          .ExecuteAsync();
+                        _apiToInvoke = _apiToInvokeOnUserBehalf;
+                    }
+                    else if (response.Key.ToString() == "D2")
+                    {
+                        authResult = await _clientApp.AcquireTokenWithDeviceCode(_publicAppscopes, deviceCodeResult =>
+                        {
+                            Console.WriteLine(deviceCodeResult.Message);
+                            return Task.FromResult(0);
+                        }).ExecuteAsync();
+                        _apiToInvoke = _apiToInvokeOnUserBehalf;
+                    }
+                    else if (response.Key.ToString() == "D3")
+                    {
+                        
+                        authResult = await _confClientApp.AcquireTokenForClient(_confidentialAppscopes).ExecuteAsync();
+                        _apiToInvoke = _apiToInvokeAsDaemon;
+                    }
+                }
+                catch (MsalException msalex)
+                {
+                    Console.WriteLine($"Error Acquiring Token Interactively:{System.Environment.NewLine}{msalex}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}");
+            }
+
+            return authResult;
+        }
+
+        private static async Task<string> InvokeAPI(AuthenticationResult authResult)
+        {
+            if (authResult != null)
+            {
+                //Debug
+                //Console.WriteLine($"Access Token: {authResult.AccessToken}");
+                //Console.WriteLine($"View at: https://jwt.ms/?#access_token={authResult.AccessToken}");
+
+                return await GetHttpContentWithToken($"{_perspioTalkAPIEndpoint}{_apiToInvoke}", authResult.AccessToken);
+            }
+            return null;
+
+        }
+        public static async Task<string> GetHttpContentWithToken(string url, string token)
+        {
+            var httpClient = new System.Net.Http.HttpClient();
+            System.Net.Http.HttpResponseMessage response;
+            try
+            {
+                var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Add("Ocp-Apim-Subscription-Key", _subscriptionKey);
+                response = await httpClient.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}");
-        }
-        return authResult;
     }
-
-    private static async Task<string> InvokeAPI(AuthenticationResult authResult)
-    {
-        if (authResult != null)
-        {
-            //Debug
-            //Console.WriteLine($"Access Token: {authResult.AccessToken}");
-            //Console.WriteLine($"View at: https://jwt.ms/?#access_token={authResult.AccessToken}");
-
-            return await GetHttpContentWithToken(perspioTalkAPIEndpoint, authResult.AccessToken);
-        }
-        return null;
-
-    }
-    public static async Task<string> GetHttpContentWithToken(string url, string token)
-    {
-        var httpClient = new System.Net.Http.HttpClient();
-        System.Net.Http.HttpResponseMessage response;
-        try
-        {
-            var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
-            //Add the token in Authorization header
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            response = await httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
-        }
-        catch (Exception ex)
-        {
-            return ex.ToString();
-        }
-    }
-}
 
 }
