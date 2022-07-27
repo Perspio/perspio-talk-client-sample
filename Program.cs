@@ -29,6 +29,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 
@@ -52,10 +53,12 @@ namespace Perspio.Talk.Sample.DotNet
 
 
         private static string _apiToInvoke = "";
-        private static string _apiToInvokeOnUserBehalf = "/aad/v3/currentuser"; // this API will return your brief profile
+        private static string _apiToInvokeOnUserBehalf = "/directory/v3/user"; // this API will return your brief profile
         private static string _apiToInvokeAsDaemon = "/locations/v3/labels"; // this API will return your brief profile
+                                                                             //private static string _apiToInvokeAsDaemon = "/sites/v3/"; // this API will return your brief profile
 
-        
+
+
         //Set the scope for API call 
         static string[] _publicAppscopes = new string[] { "api://-----/access_as_user" }; // for clients accessinf data on-behalf-of-a user 
         static string[] _confidentialAppscopes = new string[] { "api://-----/.default" }; // for clients running as a daemon agent
@@ -72,7 +75,15 @@ namespace Perspio.Talk.Sample.DotNet
 
             var response = await InvokeAPI(authResult);
             Console.WriteLine();
-            Console.WriteLine($"Api Response: {Environment.NewLine} {response}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Api Response: {response.StatusCode}{Environment.NewLine} {content}");
+            }
+            else
+            {
+                Console.WriteLine($"Api Response: {response.StatusCode}{Environment.NewLine} ");
+            }
             Console.ReadLine();
 
         }
@@ -154,7 +165,7 @@ namespace Perspio.Talk.Sample.DotNet
                     }
                     else if (response.Key.ToString() == "D3")
                     {
-                        
+
                         authResult = await _confClientApp.AcquireTokenForClient(_confidentialAppscopes).ExecuteAsync();
                         _apiToInvoke = _apiToInvokeAsDaemon;
                     }
@@ -172,7 +183,7 @@ namespace Perspio.Talk.Sample.DotNet
             return authResult;
         }
 
-        private static async Task<string> InvokeAPI(AuthenticationResult authResult)
+        private static async Task<HttpResponseMessage> InvokeAPI(AuthenticationResult authResult)
         {
             if (authResult != null)
             {
@@ -185,23 +196,15 @@ namespace Perspio.Talk.Sample.DotNet
             return null;
 
         }
-        public static async Task<string> GetHttpContentWithToken(string url, string token)
+        public static async Task<HttpResponseMessage> GetHttpContentWithToken(string url, string token)
         {
             var httpClient = new System.Net.Http.HttpClient();
             System.Net.Http.HttpResponseMessage response;
-            try
-            {
-                var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                request.Headers.Add("Ocp-Apim-Subscription-Key", _subscriptionKey);
-                response = await httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
-                return content;
-            }
-            catch (Exception ex)
-            {
-                return ex.ToString();
-            }
+            var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Add("Ocp-Apim-Subscription-Key", _subscriptionKey);
+            response = await httpClient.SendAsync(request);
+            return response;
         }
     }
 
