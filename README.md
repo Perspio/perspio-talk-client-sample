@@ -45,7 +45,7 @@ In this step the sample application will log you in and cache the access and ref
 
 There are two options available (for demo purposes) to choose from. You can login on the same machine using the Interactive Flow option or remotely from another computer using Device Code option.
 
-![alt text](login-flow-option.PNG "Login Code")
+![alt text](Login-flow-option.PNG "Login Code")
 
 
 Option 1: 
