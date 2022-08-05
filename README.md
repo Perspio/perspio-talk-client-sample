@@ -1,6 +1,6 @@
-﻿#Perspio Talk Client - Sample Application.
+﻿# Perspio Talk Client - Sample Application.
 
-###About this sample
+### About this sample
 
 This app is a sample app built in .Net and demonstrates how you can access Perspio Talk APIs
 - on behalf of a user : suitable for a web client where your users login to
@@ -82,12 +82,12 @@ You can choose to force re-login or continue with the cached tokens.
 
 After successful login the client application will make a call to the Perpsio User APIs and will retrieve your service account user profile and display that. You can invoke anyother api by replacing the path to the endpoint in program.cs
 
-        static string perspioTalkAPIEndpoint = "https://dev-talk.perspio.io/aad/v1/currentuser"; 
+        static string perspioTalkAPIEndpoint = "https://dev-talk.perspio.io/directory/v3/user"; 
 
 
 ### Develop your own client application
 
-#####LANGUAGES AND FRAMEWORKS
+##### LANGUAGES AND FRAMEWORKS
 
 The sample application demonstrates loging in to invoke Perpio APIs using Microsoft Authenticaion Library (MSAL). You can find how MSAL help you in developing for other scenarios and in other languages and Frameworks.
 
@@ -103,14 +103,14 @@ The sample application demonstrates loging in to invoke Perpio APIs using Micros
 - MSAL Python	Windows, macOS, Linux
 - MSAL React	Single-page apps with React and React-based libraries (Next.js, Gatsby.js)
 
-https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview 
+Check out [MSAL Overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview) for further information.
 
 ##### Access and Cache Token Storage
 
 The sample application caches the access and refresh tokens in a local cache. However, you can write your own implementation of storing the tokens in another storage such as in a databse etc. 
-For more information https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-net-token-cache-serialization?tabs=aspnetcore
+For more information [check here](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-net-token-cache-serialization?tabs=aspnetcore)
 
 
 
-#####Copyright (c) Inauro.
-######All rights reserved.
+##### Copyright (c) Inauro.
+###### All rights reserved.
